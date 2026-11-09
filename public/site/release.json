@@ -1,0 +1,10 @@
+{
+    "version":  "1.1.0",
+    "versionCode":  110,
+    "minAndroid":  "8.0",
+    "sizeMB":  0.02,
+    "download":  "/downloads/30day-jpn-1.1.0.apk",
+    "sha256":  "c41064ab17d7f4cd5824239ddbe696669efcc9d7dd60f3a26ea85fd4a3fa2ed9",
+    "entry":  "https://jpn.mux1.tech/learn/",
+    "builtAt":  "2026-11-09T03:55:10.8594597Z"
+}

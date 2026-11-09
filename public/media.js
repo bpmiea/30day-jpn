@@ -1,0 +1,14 @@
+let stream,recorder,recognizer,url,timer,session=0;
+const $=s=>document.querySelector(s);
+export function stopRecording(){session++;clearTimeout(timer);recognizer?.abort();if(recorder?.state==='recording'){recorder.onstop=null;recorder.stop()}stream?.getTracks().forEach(t=>t.stop());if(url){URL.revokeObjectURL(url);url=null}}
+export async function toggleRecording(){
+ if(recorder?.state==='recording'){recorder.stop();return}
+ if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){$('#record-status').textContent='此浏览器不支持录音，可以朗读后完成自评。';return}
+ const current=session;
+ try{const media=await navigator.mediaDevices.getUserMedia({audio:true});if(current!==session||!$('#record')){media.getTracks().forEach(t=>t.stop());return}stream=media;recorder=new MediaRecorder(stream);const chunks=[];
+ recorder.ondataavailable=e=>chunks.push(e.data);recorder.onstop=()=>{clearTimeout(timer);stream.getTracks().forEach(t=>t.stop());if(current!==session||!$('#record-playback'))return;if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(new Blob(chunks,{type:recorder.mimeType}));$('#record-playback').src=url;$('#record-playback').hidden=false;$('#record').textContent='重新录音';$('#record-status').textContent='录音完成。回听并与示范比较。'};
+ recorder.start();$('#record').textContent='停止录音';$('#record-status').textContent='正在录音… 最长 60 秒';timer=setTimeout(()=>{if(recorder.state==='recording')recorder.stop()},60000);
+ }catch{if($('#record-status'))$('#record-status').textContent='无法使用麦克风，请检查权限后重试。也可先朗读，再自评。'}
+}
+export function recognize(){const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;if(!Speech){$('#recognition-result').textContent='当前浏览器不支持语音识别，请使用录音回听。';return}recognizer?.abort();recognizer=new Speech();recognizer.lang='ja-JP';recognizer.interimResults=false;$('#recognition-result').textContent='正在识别日语…';recognizer.onresult=e=>{if($('#recognition-result'))$('#recognition-result').textContent='识别文字：'+e.results[0][0].transcript+'（用于对照，不是发音评分）'};recognizer.onerror=()=>{if($('#recognition-result'))$('#recognition-result').textContent='识别服务暂不可用，请使用录音回听。'};recognizer.start();}
+export function initCanvas(){const canvas=$('#writing-canvas');if(!canvas)return;const ctx=canvas.getContext('2d'),r=canvas.getBoundingClientRect(),ratio=devicePixelRatio||1;canvas.width=r.width*ratio;canvas.height=r.height*ratio;ctx.scale(ratio,ratio);ctx.lineWidth=3;ctx.lineCap='round';ctx.strokeStyle='#5158b8';let drawing=false;canvas.onpointerdown=e=>{drawing=true;canvas.setPointerCapture(e.pointerId);const p=canvas.getBoundingClientRect();ctx.beginPath();ctx.moveTo(e.clientX-p.left,e.clientY-p.top)};canvas.onpointermove=e=>{if(!drawing)return;const p=canvas.getBoundingClientRect();ctx.lineTo(e.clientX-p.left,e.clientY-p.top);ctx.stroke()};canvas.onpointerup=canvas.onpointercancel=()=>drawing=false;$('#clear-canvas').onclick=()=>ctx.clearRect(0,0,r.width,r.height);}

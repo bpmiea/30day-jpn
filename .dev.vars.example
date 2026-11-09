@@ -1,0 +1,7 @@
+# Copy to .dev.vars. Never commit the file containing real keys.
+APP_ENV="development"
+# Leave Turnstile blank ONLY for localhost official dummy-key testing.
+TURNSTILE_SITE_KEY=""
+TURNSTILE_SECRET_KEY=""
+# Alibaba Cloud Model Studio > Beijing > API Key (not an AccessKey ID/Secret pair)
+DASHSCOPE_API_KEY=""
