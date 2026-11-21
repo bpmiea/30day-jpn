@@ -99,6 +99,6 @@ npm run deploy
 - `worker.js`、`server/services.js`：账号、进度、Turnstile 与日语语音。
 - `migrations/`：数据库结构与幂等学习事件。
 - `public/app.js`、`views.js`、`path-home.js`：状态、页面与闯关路径。
-- `public/ink.css`：移动端及练习页面样式。
+- `public/learn/md3-theme.css`、`public/learn/md3.css`：学习页的 Material 3 色彩角色、浅色和深色主题、组件及自适应布局。
 - `public/curriculum.js` 及课程数据模块：三条路线、题库和复习材料。
 - `tests/`：课程、API、媒体和浏览器测试。
