@@ -3,12 +3,14 @@ import {curriculum} from './curriculum.js';
 const readings=new Map(curriculum.flatMap(d=>d.words.map(w=>[w.jp,w.kana])));
 let currentAudio=null,controller=null,requestNumber=0;
 const clips=new Map();
+const beginnerClips=new Set('あいうえお');
+export const hasBeginnerClip=text=>beginnerClips.has(text);
 export function stopSpeech(){requestNumber++;controller?.abort();currentAudio?.pause();if(currentAudio)currentAudio.currentTime=0;window.speechSynthesis?.cancel();}
 export async function playJapanese(text,rate='normal',fallback=false){
  stopSpeech();const number=requestNumber;
- if(fallback)return playDevice(text,rate);
+ if(fallback&&!hasBeginnerClip(text))return playDevice(text,rate);
  const key=text;
- let url=clips.get(key);
+ let url=hasBeginnerClip(text)?`/learn/sounds/${text.codePointAt(0).toString(16)}.wav`:clips.get(key);
  if(!url){controller=new AbortController();const response=await fetch('/api/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,rate}),signal:controller.signal});
   if(!response.ok){const error=await response.json();throw Error(error.error||'日语语音暂不可用。');}
   const blob=await response.blob();if(!blob.type.includes('audio'))throw Error('服务未返回有效的日语音频。');

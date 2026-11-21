@@ -1,4 +1,4 @@
-import {courses, courseLessons, modes} from './curriculum.js';
+import {courses, courseLessons, modes, foundations} from './curriculum.js';
 import {icon} from './icons.js';
 
 const escape = text => String(text).replace(/[&<>"']/g, char => ({
@@ -16,6 +16,7 @@ export function pathHome(context) {
   const nextLesson = lessons[lesson.index];
   const minutes = todayMinutes();
   const due = dueCards().length;
+  const nextFoundation = foundations.find(item => !done(item.day, 'foundation')) || foundations[0];
 
   return `
     <div class="learning-layout">
@@ -35,6 +36,11 @@ export function pathHome(context) {
           </div>
           <button class="outline-button" data-day-detail="${lesson.day}">${icon('book')} 课程笔记</button>
         </section>
+        ${course.id === 'n5' ? `<section class="foundation-entry surface-card">
+          <span class="card-icon">${icon('pen')}</span>
+          <div><h2>读写入门专项</h2><p>${escape(nextFoundation.title)} · 听音、手写、跟读</p></div>
+          <button class="tonal-button" data-foundation="${nextFoundation.day}">${nextFoundation.day === 1101 ? '试学' : '继续专项'} ${icon('arrow')}</button>
+        </section>` : ''}
         <section aria-labelledby="practice-title">
           <div class="path-heading section-title">
             <h2 id="practice-title">本课练习</h2>

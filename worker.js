@@ -1,5 +1,6 @@
 import {serviceConfig,verifyChallenge,synthesize} from './server/services.js';
 import {adminApi} from './server/admin.js';
+import {foundations} from './public/foundations.js';
 const json=(data,status=200,headers={})=>Response.json(data,{status,headers:{'Cache-Control':'no-store',...headers}});
 const hex=bytes=>Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
 const token=()=>hex(crypto.getRandomValues(new Uint8Array(32)));
@@ -9,7 +10,8 @@ function equal(a,b){if(a.length!==b.length)return false;let diff=0;for(let i=0;i
 const cookie=(value,url,expire=false)=>`jpn_session=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${expire?0:2592000}${url.protocol==='https:'?'; Secure':''}`;
 async function userFor(request,db){const value=request.headers.get('Cookie')?.match(/(?:^|;\s*)jpn_session=([a-f0-9]{64})(?:;|$)/)?.[1];if(!value)return null;return db.prepare('SELECT u.id,u.email,u.name,u.role FROM users u JOIN sessions s ON s.user_id=u.id WHERE s.token_hash=? AND s.expires_at>? AND u.disabled=0').bind(await digest(value),Date.now()).first();}
 async function limited(db,key,max=20){const now=Date.now();await db.prepare('DELETE FROM rate_limits WHERE expires_at < ?').bind(now).run();const row=await db.prepare('INSERT INTO rate_limits (key,count,expires_at) VALUES (?,1,?) ON CONFLICT(key) DO UPDATE SET count=count+1 RETURNING count').bind(key,now+900000).first();return row.count>max;}
-export function validCompletion(d){return d&&Number.isInteger(d.day)&&((((d.day>=1&&d.day<=60)||(d.day>=1001&&d.day<=1060)||(d.day>=2001&&d.day<=2060)||(d.day>=3001&&d.day<=3060))&&['words','grammar','listen','speak','write','assessment'].includes(d.mode))||(d.day===0&&d.mode==='review'))&&Number.isFinite(d.score)&&d.score>=0&&d.score<=100&&Number.isInteger(d.seconds)&&d.seconds>=0&&d.seconds<=7200;}
+const foundationIds=new Set(foundations.map(lesson=>lesson.day));
+export function validCompletion(d){return d&&Number.isInteger(d.day)&&((((d.day>=1&&d.day<=60)||(d.day>=1001&&d.day<=1060)||(d.day>=2001&&d.day<=2060)||(d.day>=3001&&d.day<=3060)||foundationIds.has(d.day))&&['words','grammar','listen','speak','write','assessment'].includes(d.mode))||(foundationIds.has(d.day)&&d.mode==='foundation')||(d.day===0&&d.mode==='review'))&&Number.isFinite(d.score)&&d.score>=0&&d.score<=100&&Number.isInteger(d.seconds)&&d.seconds>=0&&d.seconds<=7200;}
 async function api(request,env,url){
  if(url.pathname==='/api/config')return json(serviceConfig(request,env));
  if(url.pathname==='/api/health')return json({ok:true,app:'30day-jpn',database:!!env.DB});
